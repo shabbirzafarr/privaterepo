@@ -1,7 +1,14 @@
 const db = require('./db');
 
 exports.getAssetsByUser = (ps_id, callback) => {
-  db.query('SELECT * FROM assets WHERE ps_id = ?', [ps_id], callback);
+  db.query('SELECT * FROM assets WHERE ps_id = ?', [ps_id], (err, results) => {
+    if (err) {
+      console.error('Error fetching assets:', err);
+      return callback(err);
+    }
+    console.log('Assets for ps_id:', ps_id, results);
+    callback(null, results); // ✅ important!
+  });
 };
 
 exports.insertAsset = (data, callback) => {

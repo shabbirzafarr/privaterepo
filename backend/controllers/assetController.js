@@ -1,15 +1,31 @@
 const assetModel = require('../models/assetModel');
 
+// Get portfolio by ps_id
 exports.getPortfolio = (req, res) => {
-  const { ps_id } = req.query;
+  const ps_id = req.params.ps_id || req.query.ps_id;
+
+  if (!ps_id) {
+    return res.status(400).json({ error: 'ps_id is required' });
+  }
+
   assetModel.getAssetsByUser(ps_id, (err, results) => {
-    if (err) return res.status(500).json({ error: err });
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ error: err });
+    }
+    console.log(`Results for ps_id ${ps_id}:`, results);
     res.json(results);
   });
 };
 
+// Buy asset (insert)
 exports.buyAsset = (req, res) => {
   const { ps_id, symbol, company_name, quantity, purchase_price } = req.body;
+
+  if (!ps_id || !symbol || !company_name || !quantity || !purchase_price) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
   const data = [ps_id, symbol, company_name, quantity, purchase_price];
   assetModel.insertAsset(data, (err) => {
     if (err) return res.status(500).json({ error: err });
@@ -17,20 +33,36 @@ exports.buyAsset = (req, res) => {
   });
 };
 
+// Sell asset (update or remove)
 exports.sellAsset = (req, res) => {
   const { ps_id, symbol, quantity } = req.body;
-  assetModel.getAssetQuantity(ps_id, symbol, (err, results) => {
-    if (err || results.length === 0) return res.status(400).json({ error: 'Asset not found' });
-    const existingQty = results[0].quantity;
-    if (existingQty < quantity) return res.status(400).json({ error: 'Not enough quantity' });
 
-    if (existingQty === quantity) {
+  if (!ps_id || !symbol || !quantity) {
+    return res.status(400).json({ error: 'ps_id, symbol, and quantity are required' });
+  }
+
+  const requestedQty = Number(quantity);
+  if (isNaN(requestedQty)) {
+    return res.status(400).json({ error: 'Invalid quantity' });
+  }
+
+  assetModel.getAssetQuantity(ps_id, symbol, (err, results) => {
+    if (err || results.length === 0) {
+      return res.status(400).json({ error: 'Asset not found' });
+    }
+
+    const existingQty = results[0].quantity;
+    if (existingQty < requestedQty) {
+      return res.status(400).json({ error: 'Not enough quantity to sell' });
+    }
+
+    if (existingQty === requestedQty) {
       assetModel.removeAsset(ps_id, symbol, (err2) => {
         if (err2) return res.status(500).json({ error: err2 });
-        res.json({ message: 'Asset sold and removed' });
+        res.json({ message: 'Asset sold and removed completely' });
       });
     } else {
-      const newQty = existingQty - quantity;
+      const newQty = existingQty - requestedQty;
       assetModel.updateAssetQuantity(newQty, ps_id, symbol, (err3) => {
         if (err3) return res.status(500).json({ error: err3 });
         res.json({ message: 'Asset quantity updated after selling' });
