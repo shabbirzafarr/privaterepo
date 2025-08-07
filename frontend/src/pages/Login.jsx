@@ -37,20 +37,20 @@ const Login = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center px-4">
-      {/* Background Image with Gradient */}
+    <div className="relative min-h-screen flex items-center justify-center px-4 bg-black">
+      {/* Background Image with Black Overlay */}
       <div
-        className="absolute inset-0 bg-cover bg-center z-0"
+        className="absolute inset-0 bg-cover bg-center z-0 opacity-20"
         style={{
           backgroundImage: `
-            linear-gradient(to bottom, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)),
-            url('https://media.istockphoto.com/id/1397855482/photo/business-financial-investment.jpg?s=612x612&w=0&k=20&c=7GDFknE-Ecn5Pe_00ID50u_ZbNtfLdbD-pcd3cTRybY=')`,
+            linear-gradient(to bottom, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9)),
+            url('https://images.unsplash.com/photo-1581092160612-3f3f5d4c1402')`,
         }}
       ></div>
 
       {/* Login Box - Glassmorphic Style */}
-      <div className="z-10 backdrop-blur-lg bg-white/10 border border-white/20 shadow-2xl rounded-2xl p-8 w-full max-w-md">
-        <h2 className="text-3xl font-bold text-center text-white mb-6 drop-shadow">
+      <div className="z-10 backdrop-blur-lg bg-white/5 border border-green-600 shadow-2xl rounded-2xl p-8 w-full max-w-md">
+        <h2 className="text-3xl font-bold text-center text-green-400 mb-6 drop-shadow">
           Welcome Back
         </h2>
 
@@ -60,18 +60,18 @@ const Login = () => {
             placeholder="Enter PS ID"
             value={psId}
             onChange={(e) => setPsId(e.target.value)}
-            className="w-full px-4 py-2 bg-white/20 text-white placeholder-gray-300 border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 bg-white/10 text-white placeholder-gray-400 border border-green-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
           />
 
           <button
             onClick={handleLogin}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition duration-300 shadow-md hover:shadow-xl"
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition duration-300 shadow-md hover:shadow-xl"
           >
             Enter
           </button>
         </div>
 
-        <p className="mt-6 text-center text-sm text-gray-300">
+        <p className="mt-6 text-center text-sm text-gray-400">
           Enter your PS ID to continue to the dashboard.
         </p>
       </div>

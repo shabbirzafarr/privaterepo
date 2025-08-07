@@ -1,12 +1,10 @@
 const assetModel = require('../models/assetModel');
 
+const PS_ID = '4545'; // 🔐 Constant user ID
+
 // Get portfolio by ps_id
 exports.getPortfolio = (req, res) => {
-  const ps_id = req.params.ps_id || req.query.ps_id;
-
-  if (!ps_id) {
-    return res.status(400).json({ error: 'ps_id is required' });
-  }
+  const ps_id = PS_ID;
 
   assetModel.getAssetsByUser(ps_id, (err, results) => {
     if (err) {
@@ -18,11 +16,12 @@ exports.getPortfolio = (req, res) => {
   });
 };
 
-// Buy asset (insert)
+// Buy asset (insert or update)
 exports.buyAsset = (req, res) => {
-  const { ps_id, symbol, company_name, quantity, purchase_price } = req.body;
+  const ps_id = PS_ID;
+  const { symbol, company_name, quantity, purchase_price } = req.body;
 
-  if (!ps_id || !symbol || !company_name || !quantity || !purchase_price) {
+  if (!symbol || !company_name || !quantity || !purchase_price) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
@@ -32,7 +31,6 @@ exports.buyAsset = (req, res) => {
     const newQty = Number(quantity);
 
     if (results.length > 0) {
-      // Update quantity
       const updatedQty = results[0].quantity + newQty;
       assetModel.updateAssetQuantity(updatedQty, ps_id, symbol, (err2) => {
         if (err2) return res.status(500).json({ error: err2 });
@@ -50,10 +48,11 @@ exports.buyAsset = (req, res) => {
 
 // Sell asset (update or remove)
 exports.sellAsset = (req, res) => {
-  const { ps_id, symbol, quantity } = req.body;
+  const ps_id = PS_ID;
+  const { symbol, quantity } = req.body;
 
-  if (!ps_id || !symbol || !quantity) {
-    return res.status(400).json({ error: 'ps_id, symbol, and quantity are required' });
+  if (!symbol || !quantity) {
+    return res.status(400).json({ error: 'symbol and quantity are required' });
   }
 
   const requestedQty = Number(quantity);

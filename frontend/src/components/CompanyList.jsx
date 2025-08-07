@@ -3,13 +3,13 @@ import { TrendingUp, Briefcase, BarChart3, Info, Star } from 'lucide-react';
 
 const companies = [
   { name: 'Reliance Industries', symbol: 'RELIANCE.NS', marketCap: 18200000000000, sector: 'Energy', headquarters: 'Mumbai' },
-  { name: 'Infosys', symbol: 'INFY', marketCap: 6300000000000, sector: 'IT Services', headquarters: 'Bengaluru' },
-  { name: 'HDFC Bank', symbol: 'HDFCBANK', marketCap: 12100000000000, sector: 'Banking', headquarters: 'Mumbai' },
-  { name: 'Tata Consultancy Services', symbol: 'TCS', marketCap: 13700000000000, sector: 'IT Services', headquarters: 'Mumbai' },
-  { name: 'ICICI Bank', symbol: 'ICICIBANK', marketCap: 7900000000000, sector: 'Banking', headquarters: 'Mumbai' },
-  { name: 'Larsen & Toubro', symbol: 'LT', marketCap: 5200000000000, sector: 'Engineering', headquarters: 'Mumbai' },
-  { name: 'State Bank of India', symbol: 'SBIN', marketCap: 7000000000000, sector: 'Banking', headquarters: 'Mumbai' },
-  { name: 'Bharti Airtel', symbol: 'BHARTIARTL', marketCap: 5400000000000, sector: 'Telecom', headquarters: 'New Delhi' },
+  { name: 'Infosys', symbol: 'INFY.NS', marketCap: 6300000000000, sector: 'IT Services', headquarters: 'Bengaluru' },
+  { name: 'HDFC Bank', symbol: 'HDFCBANK.NS', marketCap: 12100000000000, sector: 'Banking', headquarters: 'Mumbai' },
+  { name: 'Tata Consultancy Services', symbol: 'TCS.NS', marketCap: 13700000000000, sector: 'IT Services', headquarters: 'Mumbai' },
+  { name: 'ICICI Bank', symbol: 'ICICIBANK.NS', marketCap: 7900000000000, sector: 'Banking', headquarters: 'Mumbai' },
+  { name: 'Larsen & Toubro', symbol: 'LT.NS', marketCap: 5200000000000, sector: 'Engineering', headquarters: 'Mumbai' },
+  { name: 'State Bank of India', symbol: 'SBIN.NS', marketCap: 7000000000000, sector: 'Banking', headquarters: 'Mumbai' },
+  { name: 'Bharti Airtel', symbol: 'BHARTIARTL.NS', marketCap: 5400000000000, sector: 'Telecom', headquarters: 'New Delhi' },
 ];
 
 const CompanyList = ({ psId }) => {

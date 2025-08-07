@@ -34,6 +34,9 @@ const CompanyDetails = () => {
   const [endDate, setEndDate] = useState(new Date());
   const [quantity, setQuantity] = useState(0);
 
+  const [showBuyModal, setShowBuyModal] = useState(false);
+  const [showSellModal, setShowSellModal] = useState(false);
+
   useEffect(() => {
     const fetchCompany = async () => {
       try {
@@ -132,13 +135,13 @@ const CompanyDetails = () => {
               placeholder="Quantity"
             />
             <button
-              onClick={handleBuy}
+              onClick={() => setShowBuyModal(true)}
               className="bg-green-600 hover:bg-green-700 transition px-4 py-2 rounded text-white"
             >
               Buy
             </button>
             <button
-              onClick={handleSell}
+              onClick={() => setShowSellModal(true)}
               className="bg-red-600 hover:bg-red-700 transition px-4 py-2 rounded text-white"
             >
               Sell
@@ -196,6 +199,54 @@ const CompanyDetails = () => {
           <p className="text-sm text-gray-400">No historical data available.</p>
         )}
       </div>
+
+      {/* BUY MODAL */}
+      {showBuyModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div className="bg-gray-900 p-6 rounded-lg shadow-lg w-[90%] max-w-md text-white">
+            <h2 className="text-xl font-semibold mb-4">Confirm Purchase</h2>
+            <p className="mb-2">Shares: <strong>{quantity}</strong></p>
+            <p className="mb-2">Price/Share: ₹{company?.regularMarketPrice}</p>
+            <p className="mb-4">Total: ₹{(quantity * company?.regularMarketPrice).toFixed(2)}</p>
+            <div className="flex justify-end gap-4">
+              <button onClick={() => setShowBuyModal(false)} className="text-gray-300">Cancel</button>
+              <button
+                onClick={async () => {
+                  await handleBuy();
+                  setShowBuyModal(false);
+                }}
+                className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded"
+              >
+                Confirm Buy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SELL MODAL */}
+      {showSellModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div className="bg-gray-900 p-6 rounded-lg shadow-lg w-[90%] max-w-md text-white">
+            <h2 className="text-xl font-semibold mb-4">Confirm Sell</h2>
+            <p className="mb-2">Shares: <strong>{quantity}</strong></p>
+            <p className="mb-2">Price/Share: ₹{company?.regularMarketPrice}</p>
+            <p className="mb-4">Total: ₹{(quantity * company?.regularMarketPrice).toFixed(2)}</p>
+            <div className="flex justify-end gap-4">
+              <button onClick={() => setShowSellModal(false)} className="text-gray-300">Cancel</button>
+              <button
+                onClick={async () => {
+                  await handleSell();
+                  setShowSellModal(false);
+                }}
+                className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded"
+              >
+                Confirm Sell
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
