@@ -26,10 +26,7 @@ const Home = () => {
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.7 }}
       >
-        <h2 className="text-3xl font-bold mb-6 tracking-wide border-b border-white/20 pb-2">
-          Company List
-        </h2>
-        <div className="h-[80vh] overflow-y-auto pr-2 custom-scrollbar space-y-4">
+        <div className="h-[90vh] overflow-y-auto pr-2 custom-scrollbar space-y-4">
           <CompanyList psId={ps_id} />
         </div>
       </motion.aside>
@@ -41,17 +38,6 @@ const Home = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
       >
-        <div className="mb-6 border-b border-white/20 pb-2">
-          <motion.h2
-            className="text-4xl font-extrabold tracking-wide"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.8 }}
-          >
-            Welcome
-          </motion.h2>
-          <p className="text-sm text-gray-300 mt-1">PS ID: {ps_id}</p>
-        </div>
         <PortfolioTable psId={ps_id} />
       </motion.main>
     </div>
