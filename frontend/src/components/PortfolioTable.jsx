@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
-import { Bar } from 'react-chartjs-2';
+import { Bar, Pie, Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   BarElement,
@@ -8,10 +8,24 @@ import {
   LinearScale,
   Tooltip,
   Legend,
+  ArcElement,
+  PointElement,
+  LineElement,
+  Title,
 } from 'chart.js';
 import { toast } from 'react-toastify';
 
-ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+ChartJS.register(
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend,
+  ArcElement,
+  PointElement,
+  LineElement,
+  Title
+);
 
 const PortfolioTable = ({ psId }) => {
   const [assets, setAssets] = useState([]);
@@ -19,37 +33,57 @@ const PortfolioTable = ({ psId }) => {
   const [selectedAction, setSelectedAction] = useState(null);
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [quantity, setQuantity] = useState('');
+  const [refreshCountdown, setRefreshCountdown] = useState(2);
+  const intervalRef = useRef(null);
+  const countdownRef = useRef(null);
 
   const fetchAssets = () => {
     axios.get(`http://localhost:3000/api/assets?ps_id=${psId}`).then((res) => {
       setAssets(res.data);
+    });
+  };
 
-      Promise.all(
-        res.data.map((asset) => {
-          const symbol = asset.symbol?.trim().toUpperCase();
-          return axios
-            .get(`http://localhost:3000/api/yahoo/price?symbol=${symbol}`)
-            .then((r) => {
-              const price = r.data?.[symbol];
-              return { symbol, price };
-            })
-            .catch(() => {
-              return { symbol, price: null };
-            });
-        })
-      ).then((results) => {
-        const priceMap = {};
-        results.forEach(({ symbol, price }) => {
-          priceMap[symbol] = price;
-        });
-        setPrices(priceMap);
+  const fetchPrices = () => {
+    if (!assets.length) return;
+
+    Promise.all(
+      assets.map((asset) => {
+        const symbol = asset.symbol?.trim().toUpperCase();
+        return axios
+          .get(`http://localhost:3000/api/yahoo/price?symbol=${symbol}`)
+          .then((r) => {
+            const price = r.data?.[symbol];
+            return { symbol, price };
+          })
+          .catch(() => {
+            return { symbol, price: null };
+          });
+      })
+    ).then((results) => {
+      const priceMap = {};
+      results.forEach(({ symbol, price }) => {
+        priceMap[symbol] = price;
       });
+      setPrices(priceMap);
     });
   };
 
   useEffect(() => {
     fetchAssets();
   }, [psId]);
+
+  useEffect(() => {
+    fetchPrices();
+    intervalRef.current = setInterval(fetchPrices, 2000);
+    countdownRef.current = setInterval(() => {
+      setRefreshCountdown((prev) => (prev === 1 ? 2 : prev - 1));
+    }, 1000);
+
+    return () => {
+      clearInterval(intervalRef.current);
+      clearInterval(countdownRef.current);
+    };
+  }, [assets]);
 
   const handleBuySellClick = (action, asset) => {
     setSelectedAction(action);
@@ -96,141 +130,147 @@ const PortfolioTable = ({ psId }) => {
       fetchAssets();
     } catch (error) {
       toast.error(error.response?.data?.error || 'Transaction failed');
-      console.error(error);
     }
   };
 
-  const chartData = {
+  const totalPL = assets.reduce((acc, a) => {
+    const price = prices[a.symbol];
+    if (price !== null) {
+      return acc + (price - a.purchase_price) * a.quantity;
+    }
+    return acc;
+  }, 0);
+
+  const barChartData = {
     labels: assets.map((a) => a.symbol),
     datasets: [
       {
         label: 'Quantity',
         data: assets.map((a) => a.quantity),
-        backgroundColor: 'rgba(34, 197, 94, 0.7)',
+        backgroundColor: 'rgba(0,255,0,0.6)',
         borderRadius: 6,
         barPercentage: 0.6,
       },
     ],
   };
 
-  const chartOptions = {
-    responsive: true,
-    animation: {
-      duration: 1500,
-      easing: 'easeInOutCubic',
-    },
-    plugins: {
-      legend: {
-        labels: {
-          color: '#374151',
-          font: { size: 14 },
-        },
+  const pieChartData = {
+    labels: assets.map((a) => a.symbol),
+    datasets: [
+      {
+        label: 'Holdings',
+        data: assets.map((a) => prices[a.symbol] * a.quantity),
+        backgroundColor: [
+          '#16a34a',
+          '#22c55e',
+          '#4ade80',
+          '#86efac',
+          '#bbf7d0',
+          '#ecfccb',
+        ],
       },
-      tooltip: {
-        backgroundColor: '#111827',
-        titleColor: '#f9fafb',
-        bodyColor: '#e5e7eb',
-        titleFont: { size: 16 },
-        bodyFont: { size: 14 },
-        padding: 10,
-      },
-    },
-    scales: {
-      x: {
-        ticks: { color: '#374151', font: { size: 12 } },
-        grid: { color: 'rgba(0,0,0,0.05)' },
-      },
-      y: {
-        ticks: { color: '#374151', font: { size: 12 } },
-        grid: { color: 'rgba(0,0,0,0.05)' },
-      },
-    },
+    ],
   };
 
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-2xl text-gray-800 max-w-6xl mx-auto">
-      <h2 className="text-3xl font-bold mb-6 border-b pb-2 text-gray-900">Your Portfolio</h2>
+    <div className="bg-black text-white p-6 rounded-xl shadow-xl max-w-7xl mx-auto">
+      <h2 className="text-3xl font-bold mb-4">Your Portfolio</h2>
+      <p className="mb-4 text-sm text-gray-400">Live prices refresh in {refreshCountdown}s</p>
+      <p className="mb-6 text-md font-medium">
+        Total Profit/Loss:{' '}
+        <span className={totalPL >= 0 ? 'text-green-400' : 'text-red-400'}>
+          ₹{totalPL.toFixed(2)}
+        </span>
+      </p>
 
-      <div className="overflow-x-auto rounded-lg shadow-md">
-        <table className="w-full text-sm border-collapse">
-          <thead>
-            <tr className="bg-gray-100 uppercase text-xs text-gray-600">
-              <th className="py-3 px-4 text-left">Company</th>
-              <th className="py-3 px-4 text-left">Symbol</th>
-              <th className="py-3 px-4 text-left">Quantity</th>
-              <th className="py-3 px-4 text-left">Price</th>
+      <div className="overflow-x-auto rounded-xl mb-8">
+        <table className="w-full text-sm text-left">
+          <thead className="bg-gray-900 text-gray-400">
+            <tr>
+              <th className="py-3 px-4">Company</th>
+              <th className="py-3 px-4">Symbol</th>
+              <th className="py-3 px-4">Quantity</th>
+              <th className="py-3 px-4">Live Price</th>
+              <th className="py-3 px-4">Profit/Loss</th>
               <th className="py-3 px-4 text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {assets.map((a, index) => (
-              <tr
-                key={a.symbol}
-                className={`${
-                  index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                } hover:bg-gray-100 transition`}
-              >
-                <td className="py-3 px-4 font-medium text-gray-900">{a.company_name}</td>
-                <td className="py-3 px-4">{a.symbol}</td>
-                <td className="py-3 px-4">{a.quantity}</td>
-                <td className="py-3 px-4">
-                  {prices[a.symbol] !== null ? `₹${prices[a.symbol]}` : 'Unavailable'}
-                </td>
-                <td className="py-3 px-4 text-center flex justify-center gap-3">
-                  <button
-                    onClick={() => handleBuySellClick('buy', a)}
-                    className="flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white font-medium py-1.5 px-4 rounded-lg text-sm shadow-md transition duration-200"
-                  >
-                    Buy
-                  </button>
-                  <button
-                    onClick={() => handleBuySellClick('sell', a)}
-                    className="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white font-medium py-1.5 px-4 rounded-lg text-sm shadow-md transition duration-200"
-                  >
-                    Sell
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {assets.map((a, i) => {
+              const currentPrice = prices[a.symbol];
+              const pl =
+                currentPrice !== null
+                  ? ((currentPrice - a.purchase_price) * a.quantity).toFixed(2)
+                  : null;
+              return (
+                <tr key={a.symbol} className={i % 2 === 0 ? 'bg-gray-800' : 'bg-gray-700'}>
+                  <td className="py-2 px-4">{a.company_name}</td>
+                  <td className="py-2 px-4">{a.symbol}</td>
+                  <td className="py-2 px-4">{a.quantity}</td>
+                  <td className="py-2 px-4">
+                    {currentPrice !== null ? `₹${currentPrice}` : 'Unavailable'}
+                  </td>
+                  <td className="py-2 px-4">
+                    {pl !== null ? (
+                      <span className={pl >= 0 ? 'text-green-400' : 'text-red-400'}>₹{pl}</span>
+                    ) : (
+                      'N/A'
+                    )}
+                  </td>
+                  <td className="py-2 px-4 text-center space-x-2">
+                    <button
+                      onClick={() => handleBuySellClick('buy', a)}
+                      className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded"
+                    >
+                      Buy
+                    </button>
+                    <button
+                      onClick={() => handleBuySellClick('sell', a)}
+                      className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded"
+                    >
+                      Sell
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
-      {assets.length > 0 && (
-        <div className="mt-10 bg-gray-50 p-6 rounded-xl shadow-inner">
-          <h3 className="text-xl font-semibold mb-4 text-gray-800">Quantity by Company</h3>
-          <Bar data={chartData} options={chartOptions} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-gray-900 p-4 rounded-xl">
+          <h3 className="text-lg font-semibold mb-2">Quantity Overview</h3>
+          <Bar data={barChartData} options={{ responsive: true }} />
         </div>
-      )}
 
-      {/* Buy/Sell Modal */}
+        <div className="bg-gray-900 p-4 rounded-xl">
+          <h3 className="text-lg font-semibold mb-2">Holdings Value Distribution</h3>
+          <Pie data={pieChartData} options={{ responsive: true }} />
+        </div>
+      </div>
+
       {selectedAsset && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-96 shadow-xl">
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+          <div className="bg-white text-black rounded-xl p-6 w-96 shadow-2xl">
             <h2 className="text-xl font-semibold mb-4 capitalize">
               {selectedAction} {selectedAsset.symbol}
             </h2>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+              <label className="block text-sm font-medium mb-1">Quantity</label>
               <input
                 type="number"
-                className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200"
+                className="w-full border rounded-lg px-3 py-2"
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 placeholder="Enter quantity"
               />
             </div>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={closeDialog}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium px-4 py-2 rounded-lg"
-              >
+            <div className="flex justify-end gap-2">
+              <button onClick={closeDialog} className="px-4 py-2 bg-gray-300 rounded-lg">
                 Cancel
               </button>
-              <button
-                onClick={handleSubmit}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg"
-              >
+              <button onClick={handleSubmit} className="px-4 py-2 bg-blue-600 text-white rounded-lg">
                 Confirm
               </button>
             </div>

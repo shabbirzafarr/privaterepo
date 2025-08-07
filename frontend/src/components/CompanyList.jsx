@@ -1,41 +1,75 @@
 import { useNavigate } from 'react-router-dom';
+import { TrendingUp, Briefcase, BarChart3, Info, Star } from 'lucide-react';
 
 const companies = [
-  { name: 'Apple Inc.', symbol: 'AAPL', marketCap: 2800000000000 },
-  { name: 'Google LLC', symbol: 'GOOGL', marketCap: 1950000000000 },
-  { name: 'Amazon', symbol: 'AMZN', marketCap: 1850000000000 },
-  { name: 'Microsoft Corp.', symbol: 'MSFT', marketCap: 3100000000000 },
-  { name: 'Tesla Inc.', symbol: 'TSLA', marketCap: 900000000000 },
+  { name: 'Reliance Industries', symbol: 'RELIANCE', marketCap: 18200000000000, sector: 'Energy', headquarters: 'Mumbai' },
+  { name: 'Infosys', symbol: 'INFY', marketCap: 6300000000000, sector: 'IT Services', headquarters: 'Bengaluru' },
+  { name: 'HDFC Bank', symbol: 'HDFCBANK', marketCap: 12100000000000, sector: 'Banking', headquarters: 'Mumbai' },
+  { name: 'Tata Consultancy Services', symbol: 'TCS', marketCap: 13700000000000, sector: 'IT Services', headquarters: 'Mumbai' },
+  { name: 'ICICI Bank', symbol: 'ICICIBANK', marketCap: 7900000000000, sector: 'Banking', headquarters: 'Mumbai' },
+  { name: 'Larsen & Toubro', symbol: 'LT', marketCap: 5200000000000, sector: 'Engineering', headquarters: 'Mumbai' },
+  { name: 'State Bank of India', symbol: 'SBIN', marketCap: 7000000000000, sector: 'Banking', headquarters: 'Mumbai' },
+  { name: 'Bharti Airtel', symbol: 'BHARTIARTL', marketCap: 5400000000000, sector: 'Telecom', headquarters: 'New Delhi' },
 ];
-
-// Sort by market cap (descending)
-const sortedCompanies = companies.sort((a, b) => b.marketCap - a.marketCap);
 
 const CompanyList = ({ psId }) => {
   const navigate = useNavigate();
 
-  const handleCompanyClick = (symbol) => {
+  const handleClick = (symbol) => {
     navigate(`/company/${psId}/${symbol}`);
   };
 
   return (
-    <div className="space-y-4">
-      {sortedCompanies.map((company, index) => (
-        <div
-          key={index}
-          onClick={() => handleCompanyClick(company.symbol)}
-          className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow duration-300 cursor-pointer"
-        >
-          <h3 className="text-lg font-semibold text-gray-800">{company.name}</h3>
-          <p className="text-sm text-gray-500">{company.symbol}</p>
-          <p className="text-xs text-gray-400">
-            Market Cap: ${company.marketCap.toLocaleString()}
-          </p>
+    <div className="w-full min-h-screen bg-black text-white px-6 py-6 space-y-8 overflow-y-auto">
+      {/* Header */}
+      <div className="text-green-400 text-2xl font-bold flex items-center gap-2">
+        <BarChart3 className="h-6 w-6" />
+        NSE Company Explorer
+      </div>
+
+      {/* NSE Companies */}
+      <div>
+        <h2 className="text-lg font-semibold border-b border-gray-700 pb-2 mb-4 flex items-center gap-2">
+          <TrendingUp className="h-4 w-4 text-green-400" />
+          Top NSE-Listed Companies
+        </h2>
+        <div className="grid gap-4">
+          {companies.map((company, idx) => (
+            <div
+              key={idx}
+              onClick={() => handleClick(company.symbol)}
+              className="bg-gray-900 rounded-xl p-4 hover:bg-gray-800 cursor-pointer transition"
+            >
+              <div className="flex justify-between items-center">
+                <h3 className="text-white font-semibold">{company.name}</h3>
+                <Briefcase className="h-4 w-4 text-green-400" />
+              </div>
+              <p className="text-sm text-gray-400">{company.symbol}</p>
+              <p className="text-xs text-gray-500">Sector: {company.sector}</p>
+              <p className="text-xs text-gray-500">HQ: {company.headquarters}</p>
+              <p className="text-xs text-gray-500">
+                Market Cap: ₹{(company.marketCap / 1e12).toFixed(2)}T
+              </p>
+            </div>
+          ))}
         </div>
-      ))}
+      </div>
+
+      {/* Quick Access Section */}
+      <div className="bg-gray-800 rounded-xl p-4">
+        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+          <Info className="h-4 w-4 text-green-400" />
+          Quick Access
+        </h3>
+        <ul className="text-sm space-y-2 text-gray-300">
+          <li className="hover:text-green-400 cursor-pointer">My Portfolio</li>
+          <li className="hover:text-green-400 cursor-pointer">Watchlist</li>
+          <li className="hover:text-green-400 cursor-pointer">Market Insights</li>
+          <li className="hover:text-green-400 cursor-pointer">Settings</li>
+        </ul>
+      </div>
     </div>
   );
 };
-
 
 export default CompanyList;
