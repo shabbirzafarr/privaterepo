@@ -14,6 +14,7 @@ import {
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { format } from 'date-fns';
+import { toast } from 'react-toastify';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
@@ -31,6 +32,7 @@ const CompanyDetails = () => {
   const [interval, setInterval] = useState('1mo');
   const [startDate, setStartDate] = useState(new Date('2024-01-01'));
   const [endDate, setEndDate] = useState(new Date());
+  const [quantity, setQuantity] = useState(0);
 
   useEffect(() => {
     const fetchCompany = async () => {
@@ -62,6 +64,34 @@ const CompanyDetails = () => {
     fetchHistory();
   }, [symbol, interval, startDate, endDate]);
 
+  const handleBuy = async () => {
+    try {
+      await axios.post('http://localhost:3000/api/assets/buy', {
+        ps_id,
+        symbol,
+        company_name: company.shortName,
+        quantity: parseInt(quantity),
+        purchase_price: company.regularMarketPrice,
+      });
+      toast.success('Asset bought successfully!');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to buy asset');
+    }
+  };
+
+  const handleSell = async () => {
+    try {
+      await axios.post('http://localhost:3000/api/assets/sell', {
+        ps_id,
+        symbol,
+        quantity: parseInt(quantity),
+      });
+      toast.success('Asset sold successfully!');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to sell asset');
+    }
+  };
+
   const chartData = {
     labels: history.map((d) => d.date),
     datasets: [
@@ -69,38 +99,64 @@ const CompanyDetails = () => {
         label: `Closing Price (${interval})`,
         data: history.map((d) => d.close),
         fill: false,
-        borderColor: 'rgb(59,130,246)',
+        borderColor: 'limegreen',
+        backgroundColor: 'limegreen',
         tension: 0.3,
       },
     ],
   };
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Company Details</h1>
+    <div className="min-h-screen bg-black text-green-400 p-6 font-mono">
+      <h1 className="text-3xl font-bold mb-6 text-green-500">Company Details</h1>
 
       {company ? (
-        <div className="bg-white rounded-xl shadow p-4 space-y-4">
-          <div className="text-xl font-semibold">{company.shortName} ({company.symbol})</div>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div><strong>Current Price:</strong> ₹{company.regularMarketPrice}</div>
-            <div><strong>Currency:</strong> {company.currency}</div>
-            <div><strong>Market Cap:</strong> {formatMarketCap(company.marketCap)}</div>
-            <div><strong>Exchange:</strong> {company.fullExchangeName || 'N/A'}</div>
+        <div className="bg-gray-900 rounded-xl shadow-lg p-6 space-y-4">
+          <div className="text-2xl font-semibold text-white">
+            {company.shortName} <span className="text-green-400">({company.symbol})</span>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-300">
+            <div><span className="text-green-500 font-medium">Current Price:</span> ₹{company.regularMarketPrice}</div>
+            <div><span className="text-green-500 font-medium">Currency:</span> {company.currency}</div>
+            <div><span className="text-green-500 font-medium">Market Cap:</span> {formatMarketCap(company.marketCap)}</div>
+            <div><span className="text-green-500 font-medium">Exchange:</span> {company.fullExchangeName || 'N/A'}</div>
+          </div>
+
+          <div className="flex items-center gap-4 mt-4">
+            <input
+              type="number"
+              className="bg-black border border-green-500 px-4 py-2 rounded text-white placeholder-gray-500"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              placeholder="Quantity"
+            />
+            <button
+              onClick={handleBuy}
+              className="bg-green-600 hover:bg-green-700 transition px-4 py-2 rounded text-white"
+            >
+              Buy
+            </button>
+            <button
+              onClick={handleSell}
+              className="bg-red-600 hover:bg-red-700 transition px-4 py-2 rounded text-white"
+            >
+              Sell
+            </button>
           </div>
         </div>
       ) : (
-        <p>Loading company info...</p>
+        <p className="text-gray-400">Loading company info...</p>
       )}
 
-      <div className="mt-10">
-        <h2 className="text-lg font-bold mb-2">Stock Performance</h2>
+      <div className="mt-12">
+        <h2 className="text-2xl font-semibold mb-4 text-green-400">Stock Performance</h2>
 
-        <div className="flex gap-4 items-center mb-4">
+        <div className="flex flex-wrap items-center gap-4 mb-6 text-sm text-white">
           <label>
             Interval:
             <select
-              className="ml-2 border rounded px-2 py-1"
+              className="ml-2 bg-black border border-green-500 rounded px-3 py-1 text-white"
               value={interval}
               onChange={(e) => setInterval(e.target.value)}
             >
@@ -115,7 +171,7 @@ const CompanyDetails = () => {
             <DatePicker
               selected={startDate}
               onChange={(date) => setStartDate(date)}
-              className="ml-2 border rounded px-2 py-1"
+              className="ml-2 bg-black border border-green-500 text-white px-3 py-1 rounded"
               dateFormat="yyyy-MM-dd"
             />
           </label>
@@ -125,7 +181,7 @@ const CompanyDetails = () => {
             <DatePicker
               selected={endDate}
               onChange={(date) => setEndDate(date)}
-              className="ml-2 border rounded px-2 py-1"
+              className="ml-2 bg-black border border-green-500 text-white px-3 py-1 rounded"
               dateFormat="yyyy-MM-dd"
               maxDate={new Date()}
             />
@@ -133,9 +189,11 @@ const CompanyDetails = () => {
         </div>
 
         {history.length > 0 ? (
-          <Line data={chartData} />
+          <div className="bg-gray-900 p-4 rounded-lg shadow">
+            <Line data={chartData} />
+          </div>
         ) : (
-          <p className="text-sm text-gray-500 mt-2">No historical data available.</p>
+          <p className="text-sm text-gray-400">No historical data available.</p>
         )}
       </div>
     </div>

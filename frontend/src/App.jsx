@@ -12,7 +12,9 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/home/:ps_id" element={<Home />} />
         <Route path="/company/:ps_id/:symbol" element={<CompanyDetails />} />
+        
       </Routes>
+
     </BrowserRouter>
   );
 }

@@ -26,10 +26,25 @@ exports.buyAsset = (req, res) => {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
-  const data = [ps_id, symbol, company_name, quantity, purchase_price];
-  assetModel.insertAsset(data, (err) => {
+  assetModel.getAssetQuantity(ps_id, symbol, (err, results) => {
     if (err) return res.status(500).json({ error: err });
-    res.json({ message: 'Asset purchased successfully' });
+
+    const newQty = Number(quantity);
+
+    if (results.length > 0) {
+      // Update quantity
+      const updatedQty = results[0].quantity + newQty;
+      assetModel.updateAssetQuantity(updatedQty, ps_id, symbol, (err2) => {
+        if (err2) return res.status(500).json({ error: err2 });
+        res.json({ message: 'Existing asset quantity updated successfully' });
+      });
+    } else {
+      const data = [ps_id, symbol, company_name, quantity, purchase_price];
+      assetModel.insertAsset(data, (err3) => {
+        if (err3) return res.status(500).json({ error: err3 });
+        res.json({ message: 'Asset purchased successfully' });
+      });
+    }
   });
 };
 
