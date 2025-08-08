@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
-import { Bar, Pie, Line } from 'react-chartjs-2';
+import { Bar, Pie } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   BarElement,
@@ -37,42 +37,41 @@ const PortfolioTable = ({ psId }) => {
   const intervalRef = useRef(null);
   const countdownRef = useRef(null);
 
-  const fetchAssets = () => {
-    axios.get(`http://localhost:3000/api/assets?ps_id=${psId}`).then((res) => {
-      setAssets(res.data);
-    });
-  };
-
-  const fetchPrices = () => {
-    if (!assets.length) return;
-
-    Promise.all(
-      assets.map((asset) => {
-        const symbol = asset.symbol?.trim().toUpperCase();
-        return axios
-          .get(`http://localhost:3000/api/yahoo/price?symbol=${symbol}`)
-          .then((r) => {
-            const price = r.data?.[symbol];
-            return { symbol, price };
-          })
-          .catch(() => {
-            return { symbol, price: null };
-          });
-      })
-    ).then((results) => {
-      const priceMap = {};
-      results.forEach(({ symbol, price }) => {
-        priceMap[symbol] = price;
-      });
-      setPrices(priceMap);
-    });
-  };
-
   useEffect(() => {
+    const fetchAssets = () => {
+      axios.get(`http://localhost:3000/api/assets?ps_id=${psId}`).then((res) => {
+        setAssets(res.data);
+      });
+    };
     fetchAssets();
   }, [psId]);
 
   useEffect(() => {
+    const fetchPrices = () => {
+      if (!assets.length) return;
+
+      Promise.all(
+        assets.map((asset) => {
+          const symbol = asset.symbol?.trim().toUpperCase();
+          return axios
+            .get(`http://localhost:3000/api/yahoo/price?symbol=${symbol}`)
+            .then((r) => {
+              const price = r.data?.[symbol];
+              return { symbol, price };
+            })
+            .catch(() => {
+              return { symbol, price: null };
+            });
+        })
+      ).then((results) => {
+        const priceMap = {};
+        results.forEach(({ symbol, price }) => {
+          priceMap[symbol] = price;
+        });
+        setPrices(priceMap);
+      });
+    };
+
     fetchPrices();
     intervalRef.current = setInterval(fetchPrices, 2000);
     countdownRef.current = setInterval(() => {
@@ -127,7 +126,9 @@ const PortfolioTable = ({ psId }) => {
       }
 
       closeDialog();
-      fetchAssets();
+      axios.get(`http://localhost:3000/api/assets?ps_id=${psId}`).then((res) => {
+        setAssets(res.data);
+      });
     } catch (error) {
       toast.error(error.response?.data?.error || 'Transaction failed');
     }
