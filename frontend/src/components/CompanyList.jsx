@@ -2,14 +2,10 @@ import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Briefcase, BarChart3, Info, Star } from 'lucide-react';
 
 const companies = [
-  { name: 'Reliance Industries', symbol: 'RELIANCE.NS', marketCap: 18200000000000, sector: 'Energy', headquarters: 'Mumbai' },
   { name: 'Infosys', symbol: 'INFY.NS', marketCap: 6300000000000, sector: 'IT Services', headquarters: 'Bengaluru' },
-  { name: 'HDFC Bank', symbol: 'HDFCBANK.NS', marketCap: 12100000000000, sector: 'Banking', headquarters: 'Mumbai' },
   { name: 'Tata Consultancy Services', symbol: 'TCS.NS', marketCap: 13700000000000, sector: 'IT Services', headquarters: 'Mumbai' },
-  { name: 'ICICI Bank', symbol: 'ICICIBANK.NS', marketCap: 7900000000000, sector: 'Banking', headquarters: 'Mumbai' },
   { name: 'Larsen & Toubro', symbol: 'LT.NS', marketCap: 5200000000000, sector: 'Engineering', headquarters: 'Mumbai' },
   { name: 'State Bank of India', symbol: 'SBIN.NS', marketCap: 7000000000000, sector: 'Banking', headquarters: 'Mumbai' },
-  { name: 'Bharti Airtel', symbol: 'BHARTIARTL.NS', marketCap: 5400000000000, sector: 'Telecom', headquarters: 'New Delhi' },
 ];
 
 const CompanyList = ({ psId }) => {
@@ -56,18 +52,7 @@ const CompanyList = ({ psId }) => {
       </div>
 
       {/* Quick Access Section */}
-      <div className="bg-gray-800 rounded-xl p-4">
-        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-          <Info className="h-4 w-4 text-green-400" />
-          Quick Access
-        </h3>
-        <ul className="text-sm space-y-2 text-gray-300">
-          <li className="hover:text-green-400 cursor-pointer">My Portfolio</li>
-          <li className="hover:text-green-400 cursor-pointer">Watchlist</li>
-          <li className="hover:text-green-400 cursor-pointer">Market Insights</li>
-          <li className="hover:text-green-400 cursor-pointer">Settings</li>
-        </ul>
-      </div>
+      
     </div>
   );
 };
